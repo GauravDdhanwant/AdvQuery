@@ -1,5 +1,5 @@
 streamlit==1.34.0
 openai==0.28.0
 pandas==1.5.3
-‎matplotlib.pyplot==3.4.3
+‎matplotlib
  
