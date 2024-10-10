@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import os
-from gemini_client import GeminiClient  # Placeholder for the actual Gemini API client library
+import datetime
+
+# Replace this import with the actual Gemini API client
+from gemini import GeminiClient  # Adjust based on the actual library
 
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
@@ -53,7 +56,6 @@ if st.button("Send"):
 
             # Read the Excel file into pandas
             try:
-                # Read the Excel file
                 excel_data = pd.ExcelFile(filepath)
                 dashboard_sheets = excel_data.sheet_names
 
@@ -68,7 +70,7 @@ if st.button("Send"):
                     dashboard_structure += f"Number of rows: {df.shape[0]}, Number of columns: {df.shape[1]}\n"
                     dashboard_structure += "This sheet contains data typically displayed in grids and charts.\n"
 
-                st.write(f"Data extracted from the uploaded Excel dashboard:\n{combined_text[:500]}...")  # Display a preview
+                st.write(f"Data extracted from the uploaded Excel dashboard:\n{combined_text[:500]}...")
 
             except Exception as e:
                 st.error(f"Error reading the Excel file: {e}")
@@ -90,15 +92,15 @@ if st.button("Send"):
         - Recommendations or high-level summaries based on the data visualization.
         """
 
-        # Send the prompt to the Gemini API (using a placeholder method)
+        # Send the prompt to the Gemini API
         try:
-            response = gemini_client.generate_content(
-                model="gemini-model-name",  # Replace with the actual model name or ID used in Gemini
+            response = gemini_client.generate_content(  # Adjust based on Gemini API method
                 prompt=prompt,
+                model="gemini-model-name",  # Use the appropriate model name
                 max_tokens=1000,
                 temperature=0.7
             )
-            ai_response = response.get("text")  # Replace with the method to extract text from the Gemini response
+            ai_response = response["text"]  # Adjust based on response structure
 
             # Save the interaction to the session state
             st.session_state.conversation_history.append({
@@ -111,13 +113,13 @@ if st.button("Send"):
             st.write(ai_response)
 
             # Logging
-            today = pd.Timestamp.now().strftime("%Y-%m-%d")
+            today = datetime.date.today().strftime("%Y-%m-%d")
             log_file = os.path.join(log_folder, f"{today}.log")
             with open(log_file, 'a') as log:
                 log.write(f"User: {new_prompt}\nAI: {ai_response}\n")
 
             # Save response
-            output_filename = f"Conversation_Output_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            output_filename = f"Conversation_Output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
             output_path = os.path.join(output_responses_folder, output_filename)
             with open(output_path, 'w') as output_file:
                 output_file.write(ai_response)
