@@ -1,10 +1,7 @@
+import requests
 import streamlit as st
 import pandas as pd
 import os
-import datetime
-
-# Replace this import with the actual Gemini API client
-from gemini import GeminiClient  # Adjust based on the actual library
 
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
@@ -19,12 +16,11 @@ if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
 
 # Streamlit Interface
-st.title("Excel Dashboard Interpreter - Powered by Gemini AI")
+st.title("Excel Dashboard Interpreter - Powered by Gemini API")
 
 # API Key Input
 api_key = st.text_input("Enter your Gemini API Key:", type="password")
-if api_key:
-    gemini_client = GeminiClient(api_key=api_key)  # Initialize the Gemini client with the API key
+api_base_url = st.text_input("Enter the Gemini API Base URL:")
 
 # File Upload
 uploaded_file = st.file_uploader("Upload an Excel file containing a dashboard extract", type=['xlsx'])
@@ -92,15 +88,19 @@ if st.button("Send"):
         - Recommendations or high-level summaries based on the data visualization.
         """
 
-        # Send the prompt to the Gemini API
+        # Send the prompt to the Gemini API using HTTP POST request
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
         try:
-            response = gemini_client.generate_content(  # Adjust based on Gemini API method
-                prompt=prompt,
-                model="gemini-model-name",  # Use the appropriate model name
-                max_tokens=1000,
-                temperature=0.7
+            response = requests.post(
+                f"{api_base_url}/generate",  # Adjust the endpoint as necessary
+                json={"prompt": prompt, "model": "gemini-model-name", "max_tokens": 1000},
+                headers=headers
             )
-            ai_response = response["text"]  # Adjust based on response structure
+            response.raise_for_status()  # Check for HTTP errors
+            ai_response = response.json().get("text", "No response text found.")  # Adjust based on actual response structure
 
             # Save the interaction to the session state
             st.session_state.conversation_history.append({
@@ -113,21 +113,21 @@ if st.button("Send"):
             st.write(ai_response)
 
             # Logging
-            today = datetime.date.today().strftime("%Y-%m-%d")
+            today = pd.Timestamp.now().strftime("%Y-%m-%d")
             log_file = os.path.join(log_folder, f"{today}.log")
             with open(log_file, 'a') as log:
                 log.write(f"User: {new_prompt}\nAI: {ai_response}\n")
 
             # Save response
-            output_filename = f"Conversation_Output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            output_filename = f"Conversation_Output_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.txt"
             output_path = os.path.join(output_responses_folder, output_filename)
             with open(output_path, 'w') as output_file:
                 output_file.write(ai_response)
 
             st.success("Conversation updated. Check the log and output files.")
 
-        except Exception as e:
-            st.error(f"Gemini API error: {e}")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Gemini API request error: {e}")
 
 if st.button("Clear Conversation History"):
     st.session_state.conversation_history = []
