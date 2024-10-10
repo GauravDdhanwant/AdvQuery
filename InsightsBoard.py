@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import os
 import json
-
+import google.generativeai as genai
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
 output_responses_folder = "output_responses_folder"
