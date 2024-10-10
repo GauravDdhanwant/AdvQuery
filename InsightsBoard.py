@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import openai
 import os
-from io import BytesIO
 
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
@@ -22,7 +21,7 @@ st.title("Excel Dashboard Interpreter - Powered by Gemini AI")
 # API Key Input
 api_key = st.text_input("Enter your Gemini API Key:", type="password")
 if api_key:
-    openai.api_key = api_key  # This assumes using OpenAI's key for the generative model
+    openai.api_key = api_key
 
 # File Upload
 uploaded_file = st.file_uploader("Upload an Excel file containing a dashboard extract", type=['xlsx'])
@@ -67,10 +66,7 @@ if st.button("Send"):
                     # Generate a summary of the sheet's structure for the AI prompt
                     dashboard_structure += f"\nSheet: {sheet}\n"
                     dashboard_structure += f"Number of rows: {df.shape[0]}, Number of columns: {df.shape[1]}\n"
-
-                    # Extract any identified chart types, legends, and patterns if this information is available
                     dashboard_structure += "This sheet contains data typically displayed in grids and charts.\n"
-                    # Additional logic can be added here to analyze patterns, legends, etc.
 
                 st.write(f"Data extracted from the uploaded Excel dashboard:\n{combined_text[:500]}...")  # Display a preview
 
@@ -96,13 +92,13 @@ if st.button("Send"):
 
         # Send the prompt to the Gemini API (using OpenAI as a placeholder)
         try:
-            response = openai.Completion.create(
-                engine="text-davinci-003",  # Replace with Gemini API specifics if available
-                prompt=prompt,
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
                 max_tokens=1000,
                 temperature=0.7
             )
-            ai_response = response.choices[0].text.strip()
+            ai_response = response.choices[0].message['content']
 
             # Save the interaction to the session state
             st.session_state.conversation_history.append({
@@ -128,7 +124,7 @@ if st.button("Send"):
 
             st.success("Conversation updated. Check the log and output files.")
 
-        except openai.error.OpenAIError as e:
+        except openai.error.APIError as e:
             st.error(f"OpenAI API error: {e}")
 
 if st.button("Clear Conversation History"):
