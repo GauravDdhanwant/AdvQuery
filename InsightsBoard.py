@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import openai
 import os
+from gemini_client import GeminiClient  # Placeholder for the actual Gemini API client library
 
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
@@ -21,7 +21,7 @@ st.title("Excel Dashboard Interpreter - Powered by Gemini AI")
 # API Key Input
 api_key = st.text_input("Enter your Gemini API Key:", type="password")
 if api_key:
-    openai.api_key = api_key
+    gemini_client = GeminiClient(api_key=api_key)  # Initialize the Gemini client with the API key
 
 # File Upload
 uploaded_file = st.file_uploader("Upload an Excel file containing a dashboard extract", type=['xlsx'])
@@ -90,15 +90,15 @@ if st.button("Send"):
         - Recommendations or high-level summaries based on the data visualization.
         """
 
-        # Send the prompt to the Gemini API (using OpenAI as a placeholder)
+        # Send the prompt to the Gemini API (using a placeholder method)
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}],
+            response = gemini_client.generate_content(
+                model="gemini-model-name",  # Replace with the actual model name or ID used in Gemini
+                prompt=prompt,
                 max_tokens=1000,
                 temperature=0.7
             )
-            ai_response = response.choices[0].message['content']
+            ai_response = response.get("text")  # Replace with the method to extract text from the Gemini response
 
             # Save the interaction to the session state
             st.session_state.conversation_history.append({
@@ -124,8 +124,8 @@ if st.button("Send"):
 
             st.success("Conversation updated. Check the log and output files.")
 
-        except openai.error.APIError as e:
-            st.error(f"OpenAI API error: {e}")
+        except Exception as e:
+            st.error(f"Gemini API error: {e}")
 
 if st.button("Clear Conversation History"):
     st.session_state.conversation_history = []
