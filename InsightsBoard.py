@@ -1,7 +1,8 @@
-import requests
 import streamlit as st
 import pandas as pd
+import requests
 import os
+import json
 
 # Initialize folders for input, output, and logs
 input_excel_folder = "input_excel_folder"
@@ -20,7 +21,7 @@ st.title("Excel Dashboard Interpreter - Powered by Gemini API")
 
 # API Key Input
 api_key = st.text_input("Enter your Gemini API Key:", type="password")
-api_base_url = st.text_input("Enter the Gemini API Base URL:")
+api_base_url = st.text_input("Enter the Gemini API Base URL (e.g., https://api.gemini.com)")
 
 # File Upload
 uploaded_file = st.file_uploader("Upload an Excel file containing a dashboard extract", type=['xlsx'])
